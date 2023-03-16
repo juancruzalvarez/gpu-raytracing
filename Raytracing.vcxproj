@@ -137,15 +137,22 @@
   <ItemGroup>
     <ClCompile Include="lib\glad\src\glad.c" />
     <ClCompile Include="src\app.cc" />
+    <ClCompile Include="src\camera.cc" />
     <ClCompile Include="src\main.cc" />
     <ClCompile Include="src\shader.cc" />
     <ClCompile Include="src\window.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\app.h" />
+    <ClInclude Include="src\camera.h" />
     <ClInclude Include="src\input.h" />
     <ClInclude Include="src\shader.h" />
     <ClInclude Include="src\window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\shaders\raytracing.cs" />
+    <None Include="res\shaders\render_img.fs" />
+    <None Include="res\shaders\render_img.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -21,8 +21,10 @@ Shader::Shader(const char* vertex_path, const char* fragment_path, const char* g
 	uint32_t fragment_program = CreateShaderProgram(fragment_code, GL_FRAGMENT_SHADER);
 	uint32_t geometry_program;
 	program_id_ = glCreateProgram();
+
 	glAttachShader(program_id_, vertex_program);
 	glAttachShader(program_id_, fragment_program);
+
 	if (geometry_path)
 	{
 		std::string geometry_code = ReadFileToStr(geometry_path);
@@ -30,6 +32,7 @@ Shader::Shader(const char* vertex_path, const char* fragment_path, const char* g
 		glAttachShader(program_id_, geometry_program);
 
 	}
+
 	glLinkProgram(program_id_);
 	glGetProgramiv(program_id_, GL_LINK_STATUS, &success);
 
@@ -41,12 +44,13 @@ Shader::Shader(const char* vertex_path, const char* fragment_path, const char* g
 
 	glDeleteShader(vertex_program);
 	glDeleteShader(fragment_program);
+
 	if (geometry_path)
 	{
 		glDeleteShader(geometry_program);
 	}
-
 }
+
 
 Shader::Shader(const char* compute_path) {
 	GLint success;

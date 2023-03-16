@@ -17,6 +17,8 @@ class Shader
 {
 
 public:
+	Shader() {};
+
 	// NOTE: maybe change const char* to be const std::string&, doesn't really matter.
 	Shader(const char* vertex_path, const char* fragment_path, const char* geometry_path = nullptr);
 	Shader(const char* compute_path);

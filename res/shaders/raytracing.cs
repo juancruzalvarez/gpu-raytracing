@@ -5,7 +5,11 @@ layout(rgba32f, binding = 0) uniform image2D img;
 
 uniform float u_fov;
 uniform vec3 u_camera_position;
-uniform vec3 u_camera_rotation;
+uniform vec3 u_camera_forwards;
+uniform vec3 u_camera_right;
+uniform vec3 u_camera_up;
+
+
 
 struct Ray {
     vec3 origin;
@@ -30,8 +34,15 @@ float IntersectSphere(Ray ray, Sphere sphere);
 void main() {
     Ray ray = Ray(u_camera_position, CalculateRayDirection());
     Sphere test_sphere = Sphere(vec3(0,0,-5),0.975);
-    if(IntersectSphere(ray, test_sphere) != -1)
-        imageStore(img, ivec2(gl_GlobalInvocationID.xy), vec4(0.8,0.3,0.5,1));
+    float t = IntersectSphere(ray, test_sphere);
+    if (t != -1)
+    {
+        vec3 hit_point = ray.origin + ray.direction * t;
+        vec3 normal = normalize(hit_point - test_sphere.position);
+
+        imageStore(img, ivec2(gl_GlobalInvocationID.xy), vec4(0.8, 0.3, 0.5, 1)*dot(normal, -ray.direction));
+
+    }
     else
         imageStore(img, ivec2(gl_GlobalInvocationID.xy), vec4(0.1, 0.3, 0.2, 1));
 
@@ -41,12 +52,17 @@ void main() {
 vec3 CalculateRayDirection() {
     vec2 img_size = gl_NumWorkGroups.xy * gl_WorkGroupSize.xy;
     float aspect_ratio = img_size.x / img_size.y;
-    float plane_width  = 2.0f * tan(u_fov / 2.0f) * aspect_ratio;
+    float plane_width = 2.0f * tan(u_fov / 2.0f) * aspect_ratio;
     float plane_height = 2.0f * tan(u_fov / 2.0f);
-    vec2 pixel_coords = gl_GlobalInvocationID.xy + vec2(0.5,0.5);
+    vec2 pixel_coords = gl_GlobalInvocationID.xy + vec2(0.5, 0.5);
     vec2 pixel_relative = pixel_coords / img_size;
-    vec2 world_pos = (pixel_relative -0.5f) * vec2(plane_width, plane_height);
-    return normalize(vec3(world_pos, -1));
+    vec2 world_pos = (pixel_relative - 0.5f) * vec2(plane_width, plane_height);
+    //return normalize(vec3(world_pos, -1));
+    vec3 pixel_world_pos = u_camera_forwards;
+    pixel_world_pos += world_pos.x * u_camera_right;
+    pixel_world_pos += world_pos.y * u_camera_up;
+    return normalize(pixel_world_pos);
+
 }
 
 float IntersectSphere(Ray ray, Sphere sphere) {

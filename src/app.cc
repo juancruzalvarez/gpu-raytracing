@@ -80,7 +80,7 @@ void App::Run() {
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 
-
+	camera_ = FPCamera{ {0,0,0} };
 
 	//NOTE: Probably rendering the quad using indices its stupid idea.
 	//		Should use triangle strips 
@@ -88,7 +88,26 @@ void App::Run() {
 	while (!window_->ShouldClose()) {
 		raytracing_shader_->Use();
 		raytracing_shader_->SetFloat("u_fov", kFOV);
-		raytracing_shader_->SetV3f("u_camera_position", {1,0,10});
+		raytracing_shader_->SetV3f("u_camera_position", camera_.Position());
+		raytracing_shader_->SetV3f("u_camera_forwards", camera_.Forwards());
+		raytracing_shader_->SetV3f("u_camera_right", camera_.Right());
+		raytracing_shader_->SetV3f("u_camera_up", camera_.Up());
+		glm::vec3 movement{0,0,0};
+		if (window_->IsKeyPressed(GLFW_KEY_W)) movement.z +=  1;
+		if (window_->IsKeyPressed(GLFW_KEY_S)) movement.z += -1;
+		if (window_->IsKeyPressed(GLFW_KEY_D)) movement.x +=  1;
+		if (window_->IsKeyPressed(GLFW_KEY_A)) movement.x += -1;
+		if (window_->IsKeyPressed(GLFW_KEY_Q)) movement.y +=  1;
+		if (window_->IsKeyPressed(GLFW_KEY_E)) movement.y += -1;
+		camera_.Move(movement*0.005f);
+		glm::vec3 rot{ 0,0,0 };
+		if (window_->IsKeyPressed(GLFW_KEY_R)) rot.z += 1;
+		if (window_->IsKeyPressed(GLFW_KEY_F)) rot.z += -1;
+		if (window_->IsKeyPressed(GLFW_KEY_T)) rot.x += 1;
+		if (window_->IsKeyPressed(GLFW_KEY_G)) rot.x += -1;
+		if (window_->IsKeyPressed(GLFW_KEY_Y)) rot.y += 1;
+		if (window_->IsKeyPressed(GLFW_KEY_H)) rot.y += -1;
+		camera_.Rotate(rot * 0.0005f);
 		glDispatchCompute((unsigned int)kImageResolution.x / 10, (unsigned int)kImageResolution.y / 10, 1);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 		render_img_shader_->Use();

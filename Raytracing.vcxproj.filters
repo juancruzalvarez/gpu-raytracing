@@ -33,7 +33,7 @@
     <ClCompile Include="src\shader.cc">
       <Filter>implementations</Filter>
     </ClCompile>
-    <ClCompile Include="src\camera.cc">
+    <ClCompile Include="src\fp_camera.cc">
       <Filter>implementations</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,7 +50,7 @@
     <ClInclude Include="src\shader.h">
       <Filter>headers</Filter>
     </ClInclude>
-    <ClInclude Include="src\camera.h">
+    <ClInclude Include="src\fp_camera.h">
       <Filter>headers</Filter>
     </ClInclude>
   </ItemGroup>

@@ -51,6 +51,8 @@ public:
 
 	// Updates the window, polling for events and swaping the framebuffers.
 	void Update();
+	// Returns the cached state of the key asked about.
+	bool IsKeyPressed(int glfw_key_code);
 
 private:
 	GLFWwindow *window_handle_;

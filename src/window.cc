@@ -130,3 +130,8 @@ glm::vec2 Window::FramebufferSize() {
 glm::vec2 Window::WindowSize() {
 	return window_size_;
 }
+
+bool Window::IsKeyPressed(int glfw_key_code) {
+	return glfwGetKey(window_handle_, glfw_key_code) == GLFW_PRESS;
+}
+

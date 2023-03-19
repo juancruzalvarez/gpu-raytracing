@@ -23,7 +23,7 @@ MessageCallback(GLenum source,
 void App::Run() {
 	glfwInit();
 
-	window_ = new Window("Raytracing!", 1000, 600);
+	window_ = new Window("Raytracing!", 900, 600);
 	window_->MakeContextCurrent();
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -33,7 +33,7 @@ void App::Run() {
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
 
-	glViewport(0,0, 1000, 600);
+	glViewport(0,0, 900, 600);
 	// Create Shaders.
 	render_img_shader_ = new Shader{"res/shaders/render_img.vs", "res/shaders/render_img.fs"};
 	raytracing_shader_ = new Shader{"res/shaders/raytracing.cs"};

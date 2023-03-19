@@ -22,7 +22,7 @@ const double kPi = 3.1415926535897932;
 //Field of view, expressed in radians.
 const double kFOV = kPi / 6.0;
 
-const glm::ivec2 kImageResolution = glm::vec2{1000, 600};
+const glm::ivec2 kImageResolution = glm::vec2{300, 200};
 
 
 Window *window_;

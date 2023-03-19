@@ -1,4 +1,6 @@
 #version 430 core
+#define EPSILON 1e-5
+
 
 layout(local_size_x = 10, local_size_y = 10, local_size_z = 1) in;
 layout(rgba32f, binding = 0) uniform image2D img;
@@ -22,9 +24,19 @@ struct Sphere {
 };
 
 struct Plane {
-    vec3 center;
+    vec3 corner;
     vec3 normal;
-    vec2 size;
+    vec3 s1, s2;
+};
+
+struct Material {
+    vec3 color;
+};
+
+struct HitInfo {
+    vec3 hit_point;
+    vec3 normal;
+    Material material;
 };
 
 // Calculates a vector, that starts at the origin of the world(0,0,0) and points to the pixel gl_GlobalInvocationID.xy.
@@ -44,11 +56,43 @@ float IntersectPlane(Ray ray, Plane plane, out vec3 hit_point, out vec3 normal);
 void main() {
     Ray ray = Ray(u_camera_position, CalculateRayDirection());
     Sphere test_sphere = Sphere(vec3(0,0,-5),0.975);
-    vec3 normal, hit_point;
-    float t = IntersectSphere(ray, test_sphere, hit_point, normal);
+    Plane p = Plane(vec3(0,0,-7), vec3(0,0,-1),vec3(0),vec3(0));
+    vec3 normal, hit_point, color;
+
+    vec3 sNormal, sHit_point;
+    float tS = IntersectSphere(ray, test_sphere, sHit_point, sNormal);
+    vec3 pNormal, pHit_point;
+    float tP = IntersectPlane(ray, p,pHit_point, pNormal);
+    float t = -1;
+    if(tS > 0 && tP > 0) {
+        t = tS>tP ? tP : tS;
+        if (t == tS)
+        {
+            color = vec3(1, 0, 0);
+            normal = sNormal;
+            hit_point = sHit_point;
+        }
+        else
+        {
+            color = vec3(0, 1, 0);
+            normal = pNormal;
+            hit_point = pHit_point;
+        }
+    }else if(tS>0) {
+        t = tS;
+        color = vec3(1, 0, 0);
+        normal = sNormal;
+        hit_point = sHit_point;
+    }else if(tP>0) {
+        t = tP;
+        color = vec3(0, 1, 0);
+        normal = pNormal;
+        hit_point= pHit_point;
+    }
+
     if (t != -1)
     {
-        imageStore(img, ivec2(gl_GlobalInvocationID.xy), vec4(0.6, 0.5, 0.5, 1)*dot(normal, -ray.direction));
+        imageStore(img, ivec2(gl_GlobalInvocationID.xy), vec4(color,1));
 
     }
     else
@@ -100,8 +144,17 @@ float IntersectSphere(Ray ray, Sphere sphere, out vec3 hit_point, out vec3 norma
     normal = (hit_point - sphere.position) / sphere.radius;
     return t0;
 }
-float IntersectPlane(Ray ray, Plane plane, out vec3 hit_point, out vec3 normal)
-{
+float IntersectPlane(Ray ray, Plane plane, out vec3 hit_point, out vec3 normal) {
+    float denom = dot(ray.direction, plane.normal);
+    if(denom > EPSILON) {
+        vec3 p0r0 = plane.corner - ray.origin;
+        float t = dot(p0r0, plane.normal);
+        if(t>0) {
+            hit_point = ray.origin + t * ray.direction;
+            normal = plane.normal;
+            return t;
+        }
+    }
 
-    return 3.f;
+    return -1;
 }

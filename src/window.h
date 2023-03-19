@@ -3,6 +3,8 @@
 
 #include <string>
 #include <functional>
+#include <chrono>
+
 #include <glad/glad.h>
 
 #include <GLFW/glfw3.h>
@@ -14,9 +16,15 @@ class Window {
 
 public:
 	enum class ScreenMode {
-		kFullscreen,
-		kMaximized,
 		kNormal,
+		kMaximized,
+		kFullscreen,
+	};
+
+	enum class MouseMode {
+		kNormal,
+		kHidden,
+		kHiddenCenter,
 	};
 
 
@@ -51,17 +59,40 @@ public:
 
 	// Updates the window, polling for events and swaping the framebuffers.
 	void Update();
+
 	// Returns the cached state of the key asked about.
 	bool IsKeyPressed(int glfw_key_code);
 
+	void SetMouseMode(MouseMode mode);
+
+	MouseMode CurrentMouseMode();
+
+	// Returns the time between two frames, in miliseconds.
+	float FrameTime();
+	
+	// Returns the current position of the mouse, in screen coordinates. relative to bottom left corner.
+	glm::vec2 MousePosition();
+
+	// Returns the movement of the mouse, scaled to a -1:1 rangue relative to size of the window.
+	glm::vec2 MouseMovement();
+
 private:
 	GLFWwindow *window_handle_;
+
 	ScreenMode screen_mode_;
 	glm::vec2 framebuffer_size_;
 	glm::vec2 window_size_;
 	bool has_resized_;
+
+	MouseMode mouse_mode_;
+	glm::dvec2 mouse_position_;
+	glm::vec2 mouse_movement_;
+
 	input::CharCallbackFn char_callback_;
 	input::KeyCallbackFn key_callback_;
+
+	std::chrono::steady_clock::time_point last_frame_time_;
+	float frame_elapsed_time_;
 
 };
 

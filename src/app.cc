@@ -82,6 +82,7 @@ void App::Run() {
 
 	camera_ = FPCamera{ {0,0,0} };
 
+	window_->SetMouseMode(Window::MouseMode::kHiddenCenter);
 	//NOTE: Probably rendering the quad using indices its stupid idea.
 	//		Should use triangle strips 
 	//		Doesn't much matter.
@@ -92,6 +93,12 @@ void App::Run() {
 		raytracing_shader_->SetV3f("u_camera_forwards", camera_.Forwards());
 		raytracing_shader_->SetV3f("u_camera_right", camera_.Right());
 		raytracing_shader_->SetV3f("u_camera_up", camera_.Up());
+		if (window_->IsKeyPressed(GLFW_KEY_ESCAPE)) {
+			window_->SetMouseMode(
+				window_->CurrentMouseMode() == Window::MouseMode::kNormal ?
+				Window::MouseMode::kHiddenCenter : Window::MouseMode::kNormal
+			);
+		}
 		glm::vec3 movement{0,0,0};
 		if (window_->IsKeyPressed(GLFW_KEY_W)) movement.z +=  1;
 		if (window_->IsKeyPressed(GLFW_KEY_S)) movement.z += -1;
@@ -99,20 +106,19 @@ void App::Run() {
 		if (window_->IsKeyPressed(GLFW_KEY_A)) movement.x += -1;
 		if (window_->IsKeyPressed(GLFW_KEY_Q)) movement.y +=  1;
 		if (window_->IsKeyPressed(GLFW_KEY_E)) movement.y += -1;
-		camera_.Move(movement*0.005f);
-		glm::vec3 rot{ 0,0,0 };
-		if (window_->IsKeyPressed(GLFW_KEY_R)) rot.z += 1;
-		if (window_->IsKeyPressed(GLFW_KEY_F)) rot.z += -1;
-		if (window_->IsKeyPressed(GLFW_KEY_T)) rot.x += 1;
-		if (window_->IsKeyPressed(GLFW_KEY_G)) rot.x += -1;
-		if (window_->IsKeyPressed(GLFW_KEY_Y)) rot.y += 1;
-		if (window_->IsKeyPressed(GLFW_KEY_H)) rot.y += -1;
-		camera_.Rotate(rot * 0.0005f);
+		camera_.Move(movement*window_->FrameTime() * 0.025f);
+
+		auto mouse_movement = window_->MouseMovement();
+		glm::vec3 rot{mouse_movement.y, -mouse_movement.x, 0};
+		camera_.Rotate(rot * window_->FrameTime());
+
 		glDispatchCompute((unsigned int)kImageResolution.x / 10, (unsigned int)kImageResolution.y / 10, 1);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 		render_img_shader_->Use();
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*) 0);
+
 		window_->Update();
+		std::cout << "Time(ms): "<<window_->FrameTime()<<"\n";
 	}
 }
 

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <functional>
+#include <chrono>
 
 #include <GLFW/glfw3.h>
 
@@ -51,6 +52,10 @@ Window::Window(std::string title, int width, int height, bool fullscreen) {
 	window_size_ = { width, height };
 	has_resized_ = true;
 	screen_mode_ = fullscreen ? ScreenMode::kFullscreen : ScreenMode::kNormal;
+	frame_elapsed_time_ = 0;
+	last_frame_time_ = std::chrono::high_resolution_clock::now();
+	glfwGetCursorPos(window_handle_, &mouse_position_.x, &mouse_position_.y);
+	mouse_movement_ = { 0,0 };
 }
 
 void Window::SetKeyCallback(input::KeyCallbackFn callback) {
@@ -96,8 +101,21 @@ bool Window::HasResized() {
 
 void Window::Update() {
 	has_resized_ = false;
+
 	glfwPollEvents();
 	glfwSwapBuffers(window_handle_);
+
+	glm::dvec2 new_mouse_pos;
+	glfwGetCursorPos(window_handle_, &new_mouse_pos.x, &new_mouse_pos.y);
+	new_mouse_pos.y = window_size_.y - new_mouse_pos.y;
+	mouse_movement_ = new_mouse_pos - mouse_position_;
+	mouse_movement_ /= window_size_;
+	mouse_position_ = new_mouse_pos;
+
+	auto current_time = std::chrono::high_resolution_clock::now();
+	//times a 1000 to convert seconds to ms.
+	frame_elapsed_time_ = std::chrono::duration<double>(current_time-last_frame_time_).count()*1000;
+	last_frame_time_ = current_time;
 }
 
 void Window::SetScreenMode(ScreenMode screen_mode) {
@@ -135,3 +153,37 @@ bool Window::IsKeyPressed(int glfw_key_code) {
 	return glfwGetKey(window_handle_, glfw_key_code) == GLFW_PRESS;
 }
 
+void Window::SetMouseMode(MouseMode mode) {
+	mouse_mode_ = mode;
+	switch (mode) {
+
+	case MouseMode::kNormal: {
+		glfwSetInputMode(window_handle_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		break;
+	}
+	case MouseMode::kHiddenCenter: {
+		glfwSetInputMode(window_handle_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		break;
+	}
+	case MouseMode::kHidden: {
+		glfwSetInputMode(window_handle_, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		break;
+	}
+	}
+}
+
+Window::MouseMode Window::CurrentMouseMode() {
+	return mouse_mode_;
+}
+
+float Window::FrameTime() { return frame_elapsed_time_; }
+
+// Returns the current position of the mouse, in screen coordinates. relative to bottom left corner.
+glm::vec2 Window::MousePosition() {
+	return mouse_position_;
+}
+
+// Returns the movement of the mouse, scaled to a -1:1 rangue relative to size of the window.
+glm::vec2 Window::MouseMovement() {
+	return mouse_movement_;
+}
